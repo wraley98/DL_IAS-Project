@@ -3,21 +3,41 @@ function PlotData
 load("TestData.mat");
 
 numTrainImgs = [750 650 550 450 350 250 150];
+numTest = 10;
 
-figure(1)
-hold on
 for ii =1:length(numTrainImgs)
 
-    scaledNoWeightChange(ii) = TestData(1).scaled.Acc(ii).acc;
-    nonScaledNoWeightChange(ii) = TestData(1).nonScaled.Acc(ii).acc;
-    scaledWeightChange(ii) = TestData(2).scaled.Acc(ii).acc;
-    nonScaledWeightChange(ii) = TestData(2).nonScaled.Acc(ii).acc;
+    scaledNoWeightChangeCurrIndex = [];
+    nonScaledNoWeightChangeCurrIndex = [];
+    scaledWeightChangeCurrIndex = [];
+    nonScaledWeightChangeCurrIndex = [];
+
+    for jj = 1:numTest
+
+        scaledNoWeightChangeCurrIndex(jj) = ...
+            TestData(1).scaled(jj).Acc(ii).acc;
+
+        nonScaledNoWeightChangeCurrIndex(jj) = ...
+            TestData(1).nonScaled(jj).Acc(ii).acc;
+
+        scaledWeightChangeCurrIndex(jj) = ...
+            TestData(2).scaled(jj).Acc(ii).acc;
+        
+        nonScaledWeightChangeCurrIndex(jj) = ....
+            TestData(2).nonScaled(jj).Acc(ii).acc;
+
+    end
+
+    scaledNoWeightChange(ii) = mean(scaledNoWeightChangeCurrIndex);
+    nonScaledNoWeightChange(ii) = mean(nonScaledNoWeightChangeCurrIndex);
+    scaledWeightChange(ii) = mean(scaledWeightChangeCurrIndex);
+    nonScaledWeightChange(ii) = mean(nonScaledWeightChangeCurrIndex);
 
 end
 
 figure(1)
 
-hold on 
+hold on
 
 plot(numTrainImgs, truNetAcc)
 plot(numTrainImgs, scaledNoWeightChange)
