@@ -22,7 +22,7 @@ for ii =1:length(numTrainImgs)
 
         scaledWeightChangeCurrIndex(jj) = ...
             TestData(2).scaled(jj).Acc(ii).acc;
-        
+
         nonScaledWeightChangeCurrIndex(jj) = ....
             TestData(2).nonScaled(jj).Acc(ii).acc;
 
@@ -34,6 +34,44 @@ for ii =1:length(numTrainImgs)
     nonScaledWeightChange(ii) = mean(nonScaledWeightChangeCurrIndex);
 
 end
+
+
+scaledNoWeightChangeAvg = mean(scaledNoWeightChange);
+nonScaledNoWeightChangeAvg = mean(nonScaledNoWeightChange);
+scaledWeightChangeAvg = mean(scaledWeightChange);
+nonScaledWeightChangeAvg = mean(nonScaledWeightChange);
+
+scaledNoWeightChangeStd = std(scaledNoWeightChange);
+nonScaledNoWeightChangeStd = std(nonScaledNoWeightChange);
+scaledWeightChangeStd = std(scaledWeightChange);
+nonScaledWeightChangeStd = std(nonScaledWeightChange);
+
+scaledNoWeightChangeErr = mean(round(...
+               (scaledNoWeightChange - truNetAcc)./ truNetAcc * 100 , 2));
+nonScaledNoWeightChangeErr = mean(round(...
+             (nonScaledNoWeightChange - truNetAcc) / truNetAcc * 100, 2));
+scaledWeightChangeErr = mean(round((scaledWeightChange - truNetAcc) ...
+                                                 ./ truNetAcc * 100 , 2));
+nonScaledWeightChangeErr = mean(round( ...
+              (nonScaledWeightChange - truNetAcc) ./ truNetAcc * 100, 2));
+
+tableData = [scaledNoWeightChangeAvg , nonScaledNoWeightChangeAvg, ...
+             scaledWeightChangeAvg, nonScaledWeightChangeAvg;
+             scaledNoWeightChangeStd, nonScaledNoWeightChangeStd,...
+             scaledWeightChangeStd, nonScaledWeightChangeStd;...
+             scaledNoWeightChangeErr, nonScaledNoWeightChangeErr, ...
+             scaledWeightChangeErr, nonScaledWeightChangeErr];
+
+rowNames = ["scaledNoWeightChange", "nonScaledNoWeightChange", ...
+                    "scaledWeightChange", "nonScaledWeightChange"];
+
+T = table(rowNames', tableData(1,:)' , tableData(2,:)', tableData(3,:)' );
+
+T.Properties.VariableNames = ["Test Name", "Average Accuracy", ... 
+                              "Standard Deviation", "Average Error"];
+
+disp(T)
+
 
 figure(1)
 
@@ -49,6 +87,9 @@ hold off
 
 legend("trueNetAcc","scaledNoWeightChange", "nonScaledNoWeightChange", ...
     "scaledWeightChange", "nonScaledWeightChange")
+title("Mean Accuracy of Neural Network vs Number of Training Images Used")
+xlabel("Number of Training Images")
+ylabel("Mean Accuracy of Trained Neural Network")
 
 T = table(numTrainImgs', truNetAcc', scaledNoWeightChange',...
     nonScaledNoWeightChange',scaledWeightChange',nonScaledWeightChange');
@@ -57,3 +98,5 @@ T.Properties.VariableNames = ["numTrainImgs", "truNetAcc", "scaledNoWeightChange
     "nonScaledNoWeightChange", "scaledWeightChange","nonScaledWeightChange"];
 
 disp(T)
+
+

@@ -58,7 +58,6 @@ weights = zeros(5,5,1,4);
 for ii = 1:4
 
     K = kernels(indList(ii)).kernel;
-    % K = IAS_scale(W(ii).w,K);
     weights = IAS_K2W(K,weights,ii);
 
 end
