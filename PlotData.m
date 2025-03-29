@@ -2,8 +2,8 @@ function PlotData
 
 load("TestData.mat");
 
-numTrainImgs = [750 650 550 450 350 250 150];
-numTest = 10;
+numTrainImgs = [750];% 650 550 450 350 250 150];
+numTest = 2;
 
 for ii =1:length(numTrainImgs)
 

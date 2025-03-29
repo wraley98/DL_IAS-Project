@@ -41,9 +41,11 @@ for k = 1:num_kernels
     K = kernels(k).kernel;
 
     for ii = 1:4
-        if scale 
-             K = IAS_scale(double(W(ii).w) , double(K));
+
+        if scale
+            K = IAS_scale(double(W(ii).w) , double(K));
         end
+
         err = mean(mean(abs(double(K)-double(W(ii).w))));
 
         if err<errList(ii)
@@ -58,6 +60,11 @@ weights = zeros(5,5,1,4);
 for ii = 1:4
 
     K = kernels(indList(ii)).kernel;
+
+    if scale
+        K = IAS_scale(W(ii).w,K);
+    end
+    
     weights = IAS_K2W(K,weights,ii);
 
 end
@@ -69,8 +76,8 @@ imds = imageDatastore(digitDatasetPath, ...
     IncludeSubfolders=true,LabelSource="foldernames");
 
 % divide into training and validation sets
- [imdsTrain,imdsValidation] = ...
-     splitEachLabel(imds,numTrainImgs,"randomize");
+[imdsTrain,imdsValidation] = ...
+    splitEachLabel(imds,numTrainImgs,"randomize");
 
 % create network layers
 layers = [
