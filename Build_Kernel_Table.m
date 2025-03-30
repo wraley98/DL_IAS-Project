@@ -6,9 +6,9 @@ H = 5;
 kernels = IAS_create_kernels(H);
 
 % number of training images to be used in each test
-numTrainImgs = [750];% 650 550 450 350 250 150];
+numTrainImgs = [750 650 550 450 350 250 150];
 % number of test to run
-numTests = 2;
+numTests = 10;
 
 % train the initial neural networks (nn)
 for ii = 1:length(numTrainImgs)

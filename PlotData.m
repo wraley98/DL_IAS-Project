@@ -18,8 +18,8 @@ end
 
 function PrintData(TestData, truNetAcc)
 
-numTrainImgs = [750];% 650 550 450 350 250 150];
-numTest = 2;
+numTrainImgs = [750 650 550 450 350 250 150];
+numTest = 10;
 
 for ii =1:length(numTrainImgs)
 

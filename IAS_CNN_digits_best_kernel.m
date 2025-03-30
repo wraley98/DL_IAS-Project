@@ -19,7 +19,6 @@ function [netb,accuracy,imdsValidation,indList] = ...
 %     Spring 2025
 %
 
-
 close all
 
 num_kernels = length(kernels);
@@ -35,10 +34,10 @@ end
 
 for ii = 1:weightsCount
 
-    if ~(convLayerUpdate == 3)
-        weights =  layerWeight(convLayerUpdate).weights;
+    if weightsCount == 1
+        weights = layerWeight(convLayerUpdate).weights;
     else
-        weights =  layerWeight(ii).weights;
+        weights = layerWeight(ii).weights;
     end
 
     [W, sizeArr] = IAS_W2K(weights);
