@@ -1,4 +1,4 @@
-function K = IAS_W2K(W,k)
+function [weightKernel, sizeArr] = IAS_W2K(W)
 % IAS_W2K - convert a weight array to a 2D kernel
 % On input:
 %     W (weight array MxNx1x4): weight array
@@ -14,10 +14,13 @@ function K = IAS_W2K(W,k)
 %
 
 [M,N,X,Y] = size(W);
-K = zeros(M,N);
+sizeArr = [M,N,X,Y];
 
-for r = 1:M
-    for c = 1:N
-        K(r,c) = W(r,c,1,k);
+index = 1;
+
+for k = 1:Y
+    for ch = 1:X
+                weightKernel(index).w = W(:,:,ch,k);
+                index = index + 1;
     end
 end

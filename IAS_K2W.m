@@ -1,4 +1,4 @@
-function Wr = IAS_K2W(K,W,k)
+function W = IAS_K2W(Kernel , sizeArr)
 % IAS_K2W - insert a kernel into a weight array
 % On input:
 %     K (5x5 array): kernel
@@ -14,10 +14,18 @@ function Wr = IAS_K2W(K,W,k)
 %     Spring 2025
 %
 
-Wr = W;
+M = sizeArr(1);
+N = sizeArr(2);
+X = sizeArr(3);
+Y = sizeArr(4);
 
-for r = 1:5
-    for c = 1:5
-        Wr(r,c,1,k) = K(r,c);
+W = zeros(sizeArr);
+
+index = 1;
+
+for k = 1:Y
+    for ch = 1:X
+               W(:,:,ch,k)  = Kernel(index).kernel;
+               index = index + 1;
     end
 end

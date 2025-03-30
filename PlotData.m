@@ -2,6 +2,22 @@ function PlotData
 
 load("TestData.mat");
 
+for testNum = 1:3
+
+    if testNum == 3
+        fprintf("Conv Layer 1 and 2 are updated\n")
+    else
+        fprintf("Conv Layer %.0f is updated\n", testNum)
+    end
+
+    PrintData(ConvLayerTest(testNum).TestData, truNetAcc);
+
+end
+
+end
+
+function PrintData(TestData, truNetAcc)
+
 numTrainImgs = [750];% 650 550 450 350 250 150];
 numTest = 2;
 
@@ -47,28 +63,28 @@ scaledWeightChangeStd = std(scaledWeightChange);
 nonScaledWeightChangeStd = std(nonScaledWeightChange);
 
 scaledNoWeightChangeErr = mean(round(...
-               (scaledNoWeightChange - truNetAcc)./ truNetAcc * 100 , 2));
+    (scaledNoWeightChange - truNetAcc)./ truNetAcc * 100 , 2));
 nonScaledNoWeightChangeErr = mean(round(...
-             (nonScaledNoWeightChange - truNetAcc) / truNetAcc * 100, 2));
+    (nonScaledNoWeightChange - truNetAcc) / truNetAcc * 100, 2));
 scaledWeightChangeErr = mean(round((scaledWeightChange - truNetAcc) ...
-                                                 ./ truNetAcc * 100 , 2));
+    ./ truNetAcc * 100 , 2));
 nonScaledWeightChangeErr = mean(round( ...
-              (nonScaledWeightChange - truNetAcc) ./ truNetAcc * 100, 2));
+    (nonScaledWeightChange - truNetAcc) ./ truNetAcc * 100, 2));
 
 tableData = [scaledNoWeightChangeAvg , nonScaledNoWeightChangeAvg, ...
-             scaledWeightChangeAvg, nonScaledWeightChangeAvg;
-             scaledNoWeightChangeStd, nonScaledNoWeightChangeStd,...
-             scaledWeightChangeStd, nonScaledWeightChangeStd;...
-             scaledNoWeightChangeErr, nonScaledNoWeightChangeErr, ...
-             scaledWeightChangeErr, nonScaledWeightChangeErr];
+    scaledWeightChangeAvg, nonScaledWeightChangeAvg;
+    scaledNoWeightChangeStd, nonScaledNoWeightChangeStd,...
+    scaledWeightChangeStd, nonScaledWeightChangeStd;...
+    scaledNoWeightChangeErr, nonScaledNoWeightChangeErr, ...
+    scaledWeightChangeErr, nonScaledWeightChangeErr];
 
 rowNames = ["scaledNoWeightChange", "nonScaledNoWeightChange", ...
-                    "scaledWeightChange", "nonScaledWeightChange"];
+    "scaledWeightChange", "nonScaledWeightChange"];
 
 T = table(rowNames', tableData(1,:)' , tableData(2,:)', tableData(3,:)' );
 
-T.Properties.VariableNames = ["Test Name", "Average Accuracy", ... 
-                              "Standard Deviation", "Average Error"];
+T.Properties.VariableNames = ["Test Name", "Average Accuracy", ...
+    "Standard Deviation", "Average Error"];
 
 disp(T)
 
@@ -98,5 +114,5 @@ T.Properties.VariableNames = ["numTrainImgs", "truNetAcc", "scaledNoWeightChange
     "nonScaledNoWeightChange", "scaledWeightChange","nonScaledWeightChange"];
 
 disp(T)
-
+end
 

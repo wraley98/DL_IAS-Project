@@ -9,8 +9,6 @@ kernels = IAS_create_kernels(H);
 numTrainImgs = [750];% 650 550 450 350 250 150];
 % number of test to run
 numTests = 2;
-% Convolution layer will not be adjusted in training process
-WeightLearnRateFactor = 0;
 
 % train the initial neural networks (nn)
 for ii = 1:length(numTrainImgs)
@@ -27,62 +25,74 @@ for ii = 1:length(numTrainImgs)
 
 end
 
-% First loop will not allow for weight alterations in the convolution
-% layer, but the second loop will
-for kk = 1:2
+% Loop controls what weights will be updated
+for ww = 1:3
 
-    % reset the random number generator
-    rng default
-    % do not scale kernels
-    scale = false;
+    % Convolution layer will not be adjusted in training process
+    WeightLearnRateFactor = 0;
 
-    % run ten non-scaled tests
-    for jj = 1:numTests
+    % First loop will not allow for weight alterations in the convolution
+    % layer, but the second loop will
+    for kk = 1:2
 
-        [kk jj scale]
+        % reset the random number generator
+        rng default
+        % do not scale kernels
+        scale = false;
 
-        for ii = 1:length(numTrainImgs)
+        % run ten non-scaled tests
+        for jj = 1:numTests
 
-            [netb,accuracy,imdsValidation,indexes] = ...
-                IAS_CNN_digits_best_kernel(netList(ii),H,kernels, ...
-                numTrainImgs(ii), scale, WeightLearnRateFactor);
+            [kk jj scale]
 
-            accuracy_NonScaled(ii).acc = accuracy;
-            indexes_NonScaled(ii).ind = indexes;
+            for ii = 1:length(numTrainImgs)
 
+                [netb,accuracy,imdsValidation,indexes] = ...
+                    IAS_CNN_digits_best_kernel(netList(ii),H,kernels, ...
+                    numTrainImgs(ii), scale, WeightLearnRateFactor, ...
+                    ww);
+
+                accuracy_NonScaled(ii).acc = accuracy;
+                indexes_NonScaled(ii).ind = indexes;
+
+            end
+
+            nonScaled_Test(jj).Acc = accuracy_NonScaled;
+            nonScaled_Test(jj).Ind = indexes_NonScaled;
         end
 
-        nonScaled_Test(jj).Acc = accuracy_NonScaled;
-        nonScaled_Test(jj).Ind = indexes_NonScaled;
-    end
+        scale = true;
+        rng default
 
-    scale = true;
-    rng default
+        for jj = 1:numTests
 
-    for jj = 1:numTests
+            [kk jj scale]
 
-        [kk jj scale]
+            for ii = 1:length(numTrainImgs)
 
-        for ii = 1:length(numTrainImgs)
+                [netb,accuracy,imdsValidation,indexes] = ...
+                    IAS_CNN_digits_best_kernel(netList(ii),H,kernels, ...
+                    numTrainImgs(ii), scale, WeightLearnRateFactor, ww);
 
-            [netb,accuracy,imdsValidation,indexes] = ...
-                IAS_CNN_digits_best_kernel(netList(ii),H,kernels, ...
-                numTrainImgs(ii), scale, WeightLearnRateFactor);
+                accuracy_Scaled(ii).acc = accuracy;
+                indexes_Scaled(ii).ind = indexes;
+            end
 
-            accuracy_Scaled(ii).acc = accuracy;
-            indexes_Scaled(ii).ind = indexes;
+            scaled_Test(jj).Acc = accuracy_Scaled;
+            scaled_Test(jj).Ind = indexes_Scaled;
+
         end
-
-        scaled_Test(jj).Acc = accuracy_Scaled;
-        scaled_Test(jj).Ind = indexes_Scaled;
 
         TestData(kk).scaled = scaled_Test;
         TestData(kk).nonScaled = nonScaled_Test;
 
+        WeightLearnRateFactor = 1;
+
     end
 
-    WeightLearnRateFactor = 1;
+    ConvLayerTest(ww).TestData = TestData;
+    ConvLayerTest(ww).truNetAcc = truNetAcc;
 
 end
 
-save('TestData.mat', 'TestData', 'truNetAcc', 'kernels');
+save('TestData.mat', 'ConvLayerTest', 'truNetAcc', 'kernels');
