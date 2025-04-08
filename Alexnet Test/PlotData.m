@@ -1,28 +1,27 @@
 function PlotData
 
-load("TestData_1.mat");
+load("AlexnetTestData.mat");
 
-for testNum = 1:3
-    figure(testNum)
-    hold on
-    if testNum == 3
-        fprintf("Conv Layer 1 and 2 are updated\n")
-    else
-        fprintf("Conv Layer %.0f is updated\n", testNum)
-    end
+figure(1)
+hold on
+fprintf("First Conv Layer of Alexnet used\n")
+PrintData(firstLayerTestData, truNetAcc);
+hold off
 
-    PrintData(ConvLayerTest(testNum).TestData, truNetAcc);
-    hold off
-end
+figure(2)
+hold on
+fprintf("Second Conv Layer of Alexnet used\n")
+PrintData(secondLayerTestData, truNetAcc);
+hold off
 
 end
 
 function PrintData(TestData, truNetAcc)
 
 numTrainImgs = [750 650 550 450 350 250 150];
-numTest = 10;
+numTest = 1;
 
-for ii =1:length(numTrainImgs)
+for ii = 1:length(numTrainImgs)
 
     scaledNoWeightChangeCurrIndex = [];
     nonScaledNoWeightChangeCurrIndex = [];
@@ -88,7 +87,6 @@ T.Properties.VariableNames = ["Test Name", "Average Accuracy", ...
     "Standard Deviation", "Average Error"];
 
 disp(T)
-
 
 plot(numTrainImgs, truNetAcc)
 plot(numTrainImgs, scaledNoWeightChange)

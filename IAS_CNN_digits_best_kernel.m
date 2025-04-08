@@ -1,6 +1,6 @@
 function [netb,accuracy,imdsValidation,indList] = ...
     IAS_CNN_digits_best_kernel(net,H,kernels,numTrainImgs...
-    ,scale,WeightLearnRateFactor, convLayerUpdate)
+    ,scale,WeightLearnRateFactor, convLayer)
 % IAS_CNN_digits_best_kernel - find best matching kernels for weights in net
 % On input:
 %     net (Matlab neural net struct): base neural net with learned kernels
@@ -21,75 +21,90 @@ function [netb,accuracy,imdsValidation,indList] = ...
 
 close all
 
+% determine number of kernels that will be compared
 num_kernels = length(kernels);
 
+% get the weights for both conv layers
 layerWeight(1).weights= IAS_extract_weights(net,2);
 layerWeight(2).weights= IAS_extract_weights(net,6);
 
-if convLayerUpdate < 3
-    weightsCount = 1;
+if convLayer == 1 || convLayer == 2
+    % retrieve the specified conv layer weight
+    weight = layerWeight(convLayer).weights;
 else
-    weightsCount = 2;
+    % if the both conv layers are being trained, train the first
+    % layer initially
+    % call this function again for only the first layer
+    [net,~,~,indListFirstLayer] = ...
+        IAS_CNN_digits_best_kernel(net,H,kernels,numTrainImgs,scale,...
+        WeightLearnRateFactor, 1);
+    % retrieve the new weights
+    weight = IAS_extract_weights(net,6);
 end
 
-for ii = 1:weightsCount
+% determine the size of the layer and retrieve the weights
+[W, sizeArr] = IAS_W2K(weight);
 
-    if weightsCount == 1
-        weights = layerWeight(convLayerUpdate).weights;
-    else
-        weights = layerWeight(ii).weights;
-    end
+% num of channels * num of layers
+numWeights = sizeArr(3) * sizeArr(4);
 
-    [W, sizeArr] = IAS_W2K(weights);
+% initialize the error list and the index list
+errList = inf(1 , numWeights);
+indList = zeros(1,numWeights);
 
-    % num of channels * num of layers
-    numWeights = sizeArr(3) * sizeArr(4);
+% compare all kernels
+for k = 1:num_kernels
 
-
-    errList = inf(1 , numWeights);
-
-    indList = zeros(1,numWeights);
-
-    for k = 1:num_kernels
-
-        % kernel
-        K = kernels(k).kernel;
-
-        for jj = 1:numWeights
-
-            if scale
-                K = IAS_scale(double(W(jj).w) , double(K));
-            end
-
-            err = mean(mean(abs(double(K)-double(W(jj).w))));
-
-            if err<errList(jj)
-                errList(jj) = err;
-                indList(jj) = k;
-            end
-        end
-    end
-
+    % retrieve kernel 
+    K = kernels(k).kernel;
+    
+    % compare the kernel to all weights
     for jj = 1:numWeights
-
-        k =  kernels(indList(jj)).kernel;
-
+        
+        % scale if necessary
         if scale
-            k = IAS_scale(W(jj).w,k);
+            K = IAS_scale(double(W(jj).w) , double(K));
         end
-
-        bestKernels(jj).kernel = k;
-
-    end
-
-    if weightsCount == 1
-        layerWeight(convLayerUpdate).weights = ...
-            IAS_K2W(bestKernels,sizeArr);
-    else
-        layerWeight(ii).weights = ...
-            IAS_K2W(bestKernels,sizeArr);
+        
+        % determine the average difference between the kernel and the
+        % weight
+        err = mean(mean(abs(double(K)-double(W(jj).w))));
+        
+        % update the best kernel if necessary
+        if err<errList(jj)
+            errList(jj) = err;
+            indList(jj) = k;
+        end
     end
 end
+
+% loop through and update the weights with the closest kernels
+for jj = 1:numWeights
+
+    k =  kernels(indList(jj)).kernel;
+    
+    % scale the kernel if necessary
+    if scale
+        k = IAS_scale(W(jj).w,k);
+    end
+    
+    % add kernel to the best kernel struct for replacement
+    bestKernels(jj).kernel = k;
+
+end
+
+% if both conv layers are being trained, add both layer index to the index
+% list
+if convLayer == 3
+    indStruct(1).ind = indListFirstLayer;
+    indStruct(2).ind = indList;
+
+    indList = indStruct;
+end
+
+% create weights from the selected kernels
+weight = IAS_K2W(bestKernels,sizeArr);
+
 
 % create image data store
 digitDatasetPath = fullfile(matlabroot,"toolbox","nnet","nndemos", ...
@@ -102,14 +117,11 @@ imds = imageDatastore(digitDatasetPath, ...
     splitEachLabel(imds,numTrainImgs,"randomize");
 
 % create network layers depending on which conv layer is to be updated
-if convLayerUpdate == 1
-    layers = UpdateFirstConvLayers(layerWeight, H, WeightLearnRateFactor);
-elseif convLayerUpdate == 2
-    layers = UpdateSecondConvLayers(layerWeight, H, WeightLearnRateFactor);
+if convLayer == 1
+    layers = UpdateFirstConvLayers(weight, H, WeightLearnRateFactor);
 else
-    layers = UpdateBothConvLayers(layerWeight, H, WeightLearnRateFactor);
+    layers = UpdateSecondConvLayers(weight, H, WeightLearnRateFactor);
 end
-
 
 % train the network
 options = trainingOptions("sgdm", ...
@@ -117,6 +129,7 @@ options = trainingOptions("sgdm", ...
     MaxEpochs=8, ...
     Plots="none");
 
+% train network
 netb = trainNetwork(imdsTrain,layers,options);
 
 % Check accuracy
@@ -124,21 +137,22 @@ YPred = classify(netb,imdsValidation);
 YValidation = imdsValidation.Labels;
 accuracy = sum(YPred == YValidation)/numel(YValidation);
 
-end 
+end
 
-function layers = UpdateFirstConvLayers(layerWeight, H,...
-                                                WeightLearnRateFactor)
+% create layers with the first convolution layer being updated 
+function layers = UpdateFirstConvLayers(weight, H,...
+    WeightLearnRateFactor)
 
 layers = [
     imageInputLayer([28 28 1])
 
-    convolution2dLayer(H,4,'Weights',layerWeight(1).weights,...
+    convolution2dLayer(H,4,'Weights',weight,...
     'WeightLearnRateFactor',WeightLearnRateFactor,Padding="same")
     batchNormalizationLayer
     reluLayer
 
     maxPooling2dLayer(2,Stride=2)
-    
+
     convolution2dLayer(H,4,Padding="same")
     batchNormalizationLayer
     reluLayer
@@ -151,8 +165,9 @@ layers = [
     ];
 end
 
-function layers = UpdateSecondConvLayers(layerWeight, H,...
-                                            WeightLearnRateFactor)
+% create layers with the second convolution layer being updated 
+function layers = UpdateSecondConvLayers(weight, H,...
+    WeightLearnRateFactor)
 
 layers = [
     imageInputLayer([28 28 1])
@@ -162,35 +177,8 @@ layers = [
     reluLayer
 
     maxPooling2dLayer(2,Stride=2)
-    
-  
-    convolution2dLayer(H,4,'Weights',layerWeight(2).weights,...
-    'WeightLearnRateFactor',WeightLearnRateFactor,Padding="same")
-    batchNormalizationLayer
-    reluLayer
 
-    maxPooling2dLayer(2,Stride=2)
-
-    fullyConnectedLayer(10)
-    softmaxLayer
-    classificationLayer
-    ];
-end
-
-function layers = UpdateBothConvLayers(layerWeight, H, ...
-                                                    WeightLearnRateFactor)
-
-layers = [
-    imageInputLayer([28 28 1])
-
-    convolution2dLayer(H,4,'Weights',layerWeight(1).weights,...
-    'WeightLearnRateFactor',WeightLearnRateFactor,Padding="same")
-    batchNormalizationLayer
-    reluLayer
-
-    maxPooling2dLayer(2,Stride=2)
-    
-    convolution2dLayer(H,4,'Weights',layerWeight(2).weights,...
+    convolution2dLayer(H,4,'Weights',weight,...
     'WeightLearnRateFactor',WeightLearnRateFactor,Padding="same")
     batchNormalizationLayer
     reluLayer

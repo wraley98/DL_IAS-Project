@@ -1,4 +1,4 @@
-function [net,accuracy] = IAS_CNN_digits(H, numTrainFiles)
+function [net,accuracy,imdsValidation] = IAS_CNN_digits(H, numTrainFiles)
 % IAS_CNN_digits - learn to classify 10 hand-written digits
 % see https://www.mathworks.com/solutions/deep-learning/examples/training-a-model-from-scratch.html
 % On input:

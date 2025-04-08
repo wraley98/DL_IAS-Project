@@ -1,18 +1,17 @@
 function PlotData
 
-load("TestData_1.mat");
+load("SobelvLogTestData.mat");
 
-for testNum = 1:3
-    figure(testNum)
-    hold on
-    if testNum == 3
-        fprintf("Conv Layer 1 and 2 are updated\n")
+for testNum = 1:2
+
+    if testNum == 1
+        fprintf("Sobel Test\n")
     else
-        fprintf("Conv Layer %.0f is updated\n", testNum)
+        fprintf("Log Test\n")
     end
 
-    PrintData(ConvLayerTest(testNum).TestData, truNetAcc);
-    hold off
+    PrintData(kernelTest(testNum).type, truNetAcc);
+
 end
 
 end
@@ -20,28 +19,28 @@ end
 function PrintData(TestData, truNetAcc)
 
 numTrainImgs = [750 650 550 450 350 250 150];
-numTest = 10;
+numTest = 3;
 
-for ii =1:length(numTrainImgs)
+for ii = 1:length(numTrainImgs)
 
     scaledNoWeightChangeCurrIndex = [];
     nonScaledNoWeightChangeCurrIndex = [];
     scaledWeightChangeCurrIndex = [];
     nonScaledWeightChangeCurrIndex = [];
-
+    
     for jj = 1:numTest
 
         scaledNoWeightChangeCurrIndex(jj) = ...
-            TestData(1).scaled(jj).Acc(ii).acc;
+            TestData(1).scaled(jj).acc(ii);
 
         nonScaledNoWeightChangeCurrIndex(jj) = ...
-            TestData(1).nonScaled(jj).Acc(ii).acc;
+            TestData(1).nonScaled(jj).acc(ii);
 
         scaledWeightChangeCurrIndex(jj) = ...
-            TestData(2).scaled(jj).Acc(ii).acc;
+            TestData(2).scaled(jj).acc(ii);
 
         nonScaledWeightChangeCurrIndex(jj) = ....
-            TestData(2).nonScaled(jj).Acc(ii).acc;
+            TestData(2).nonScaled(jj).acc(ii);
 
     end
 
@@ -90,11 +89,17 @@ T.Properties.VariableNames = ["Test Name", "Average Accuracy", ...
 disp(T)
 
 
+figure(1)
+
+hold on
+
 plot(numTrainImgs, truNetAcc)
 plot(numTrainImgs, scaledNoWeightChange)
 plot(numTrainImgs , nonScaledNoWeightChange)
 plot(numTrainImgs, scaledWeightChange)
 plot(numTrainImgs , nonScaledWeightChange)
+
+hold off
 
 legend("trueNetAcc","scaledNoWeightChange", "nonScaledNoWeightChange", ...
     "scaledWeightChange", "nonScaledWeightChange")
